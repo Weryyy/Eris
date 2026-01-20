@@ -55,7 +55,7 @@ class DownloadService : Service() {
                 }
 
                 val fileName = "${song.artist} - ${song.name}.mp3"
-                    .replace("[^a-zA-Z0-9.-]".toRegex(), "_")
+                    .replace("[/\\\\:*?\"<>|]".toRegex(), "_")
                 val file = File(musicDir, fileName)
 
                 URL(url).openStream().use { input ->

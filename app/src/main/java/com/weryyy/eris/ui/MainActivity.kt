@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkPermissions() {
         val permissions = mutableListOf<String>()
         
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -218,10 +218,13 @@ class MainActivity : AppCompatActivity() {
     private fun startSeekBarUpdate() {
         handler.post(object : Runnable {
             override fun run() {
-                if (musicService?.isPlaying() == true) {
+                if (isBound && musicService?.isPlaying() == true) {
                     binding.seekBar.progress = musicService?.getCurrentPosition() ?: 0
+                    handler.postDelayed(this, 100)
+                } else {
+                    // Re-check after a longer delay when not playing
+                    handler.postDelayed(this, 500)
                 }
-                handler.postDelayed(this, 100)
             }
         })
     }

@@ -43,7 +43,8 @@ dependencies {
     
     // Spotify SDK
     implementation 'com.spotify.android:auth:2.1.0'
-    implementation files('libs/spotify-app-remote-release-0.8.0.aar')
+    // Note: Spotify App Remote SDK must be downloaded from Spotify Developer Dashboard
+    // and placed in app/libs/ directory for full functionality
     
     // Networking
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

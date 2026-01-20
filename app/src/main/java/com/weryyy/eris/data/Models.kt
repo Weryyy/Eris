@@ -1,5 +1,7 @@
 package com.weryyy.eris.data
 
+import java.io.Serializable
+
 data class Song(
     val id: String,
     val name: String,
@@ -10,7 +12,7 @@ data class Song(
     val duration: Int,
     var isDownloaded: Boolean = false,
     var localPath: String? = null
-)
+) : Serializable
 
 data class SearchResponse(
     val tracks: Tracks

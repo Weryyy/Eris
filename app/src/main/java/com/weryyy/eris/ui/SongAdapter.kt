@@ -2,6 +2,7 @@ package com.weryyy.eris.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.weryyy.eris.R
 import com.weryyy.eris.data.Song
@@ -15,9 +16,12 @@ class SongAdapter(
     private val songs = mutableListOf<Song>()
 
     fun submitList(newSongs: List<Song>) {
+        val diffCallback = SongDiffCallback(songs, newSongs)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        
         songs.clear()
         songs.addAll(newSongs)
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
@@ -57,6 +61,24 @@ class SongAdapter(
             } else {
                 binding.btnDownload.setImageResource(R.drawable.ic_download)
             }
+        }
+    }
+    
+    private class SongDiffCallback(
+        private val oldList: List<Song>,
+        private val newList: List<Song>
+    ) : DiffUtil.Callback() {
+        
+        override fun getOldListSize(): Int = oldList.size
+        
+        override fun getNewListSize(): Int = newList.size
+        
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition].id == newList[newItemPosition].id
+        }
+        
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return oldList[oldItemPosition] == newList[newItemPosition]
         }
     }
 }
