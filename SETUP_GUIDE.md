@@ -1,142 +1,156 @@
 # Guía de Configuración de Eris
 
-## Paso 1: Configurar Spotify Developer Account
+## 🎯 Versión Actual: YouTube
 
-### Crear una aplicación en Spotify:
+Esta versión de Eris usa **YouTube Data API v3** para buscar música. No requiere cuenta de Spotify.
 
-1. Ve a [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Haz clic en "Create an App"
-3. Completa el formulario:
-   - **App name**: Eris Music Player
-   - **App description**: Reproductor de música Android
-   - **Website**: (opcional)
-   - **Redirect URIs**: `eris://callback`
-   
-4. Acepta los términos y crea la app
-5. En el dashboard de tu app, encontrarás:
-   - **Client ID**: Una cadena larga (ej: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6`)
-   - **Client Secret**: Haz clic en "Show Client Secret" para verlo
+## ⚡ Configuración Rápida (5 minutos)
 
-### Configurar las credenciales en el proyecto:
+### 1. Obtener API Key de YouTube
 
-Abre el archivo `app/src/main/java/com/weryyy/eris/data/SpotifyConfig.kt` y reemplaza:
+1. **Ir a Google Cloud Console**
+   - Abre https://console.cloud.google.com/
+   - Inicia sesión con tu cuenta de Google
 
-```kotlin
-const val CLIENT_ID = "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"  // Tu Client ID
-const val CLIENT_SECRET = "q1w2e3r4t5y6u7i8o9p0a1s2d3f4g5h6"  // Tu Client Secret
-```
+2. **Crear Proyecto**
+   - Haz clic en el selector de proyectos (arriba)
+   - Clic en "Nuevo Proyecto"
+   - Nombre: `Eris Music App`
+   - Clic en "Crear"
 
-## Paso 2: Obtener un Access Token de Spotify
+3. **Habilitar YouTube Data API**
+   - En el menú lateral: APIs y servicios > Biblioteca
+   - Busca: "YouTube Data API v3"
+   - Clic en "YouTube Data API v3"
+   - Clic en "Habilitar"
 
-Spotify requiere autenticación OAuth 2.0. Para simplificar, aquí hay dos opciones:
+4. **Crear API Key**
+   - Ve a: APIs y servicios > Credenciales
+   - Clic en "Crear credenciales"
+   - Selecciona "Clave de API"
+   - Copia la API Key generada
 
-### Opción A: Usar Spotify OAuth (Recomendado para producción)
+### 2. Configurar en el Proyecto
 
-La app ya tiene el esqueleto para OAuth. Para implementarlo completamente:
-
-1. Agrega el Spotify Auth SDK (ya incluido en dependencias)
-2. Implementa el flujo de login en MainActivity
-3. Guarda el token usando AuthManager
-
-### Opción B: Obtener token manualmente (Para pruebas rápidas)
-
-1. Ve a [Spotify Web Console](https://developer.spotify.com/console/get-search-item/)
-2. Haz clic en "Get Token"
-3. Selecciona los scopes necesarios
-4. Copia el token generado
-5. Úsalo temporalmente en MainActivity (línea donde dice `accessToken`)
-
-**Nota**: Los tokens manuales expiran en 1 hora.
-
-## Paso 3: Compilar el Proyecto
-
-```bash
-# En la terminal de Android Studio o tu terminal:
-cd Eris
-./gradlew build
-
-# O directamente desde Android Studio:
-# Build > Make Project (Ctrl+F9)
-```
-
-## Paso 4: Ejecutar en Dispositivo/Emulador
-
-1. Conecta tu dispositivo Android con USB debugging activado, o
-2. Inicia un emulador desde Android Studio (AVD Manager)
-3. Click en Run (▶️) o presiona Shift+F10
-
-## Permisos Necesarios
-
-La app solicitará los siguientes permisos en runtime:
-- **Almacenamiento**: Para guardar las canciones descargadas
-- **Internet**: Para buscar canciones en Spotify
-
-## Estructura de Archivos Descargados
-
-Las canciones se guardan en:
-```
-/storage/emulated/0/Music/Eris/
-```
-
-Puedes acceder a ellas con cualquier gestor de archivos.
-
-## Troubleshooting
-
-### Error: "401 Unauthorized"
-- Verifica que tu token de acceso sea válido
-- Asegúrate de haber configurado correctamente CLIENT_ID y CLIENT_SECRET
-
-### Error: "No preview URL available"
-- Algunas canciones en Spotify no tienen preview URL
-- Solo se pueden descargar canciones con preview_url (clips de 30 segundos)
-
-### Error: "Permission Denied"
-- Ve a Configuración > Apps > Eris > Permisos
-- Activa "Almacenamiento"
-
-### La descarga no inicia
-- Verifica que la canción tenga un preview_url válido
-- Revisa los logs de Android (Logcat) para más detalles
-
-## Mejoras Sugeridas
-
-Para convertir esto en una app completa de producción:
-
-1. **Implementar OAuth completo**:
-   ```kotlin
-   val request = AuthenticationRequest.Builder(
-       CLIENT_ID,
-       AuthenticationResponse.Type.TOKEN,
-       REDIRECT_URI
-   ).setScopes(arrayOf("streaming", "user-read-email"))
-       .build()
-   
-   AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request)
+1. **Abrir el archivo de configuración**
+   ```
+   app/src/main/java/com/weryyy/eris/data/YouTubeConfig.kt
    ```
 
-2. **Agregar base de datos local**:
-   - Usa Room para guardar canciones descargadas
-   - Mantén un caché de búsquedas
+2. **Pegar tu API Key**
+   ```kotlin
+   object YouTubeConfig {
+       const val API_KEY = "AIzaSy..." // ← Pega tu API Key aquí
+   }
+   ```
 
-3. **Mejorar el player**:
-   - Agregar controles de siguiente/anterior
-   - Implementar cola de reproducción
-   - Agregar shuffle y repeat
+3. **Guardar el archivo**
 
-4. **Widget de pantalla de inicio**:
-   - Crear un widget para controlar la reproducción sin abrir la app
+### 3. Compilar y Ejecutar
 
-## Recursos Adicionales
+1. **Sincronizar Gradle**
+   - En Android Studio: File > Sync Project with Gradle Files
+   - Espera a que termine la sincronización
 
-- [Spotify Web API Docs](https://developer.spotify.com/documentation/web-api/)
-- [Android MediaPlayer Guide](https://developer.android.com/guide/topics/media/mediaplayer)
-- [Material Design Components](https://material.io/develop/android)
+2. **Conectar dispositivo o emulador**
+   - Dispositivo físico: Conecta por USB con depuración habilitada
+   - Emulador: Inicia un emulador Android desde AVD Manager
 
-## Soporte
+3. **Ejecutar la app**
+   - Clic en el botón Run (▶️) o presiona Shift+F10
+   - Selecciona tu dispositivo/emulador
+   - Espera a que se instale
 
-Si encuentras problemas o tienes preguntas:
-1. Revisa los logs de Android (Logcat en Android Studio)
-2. Verifica que todas las dependencias se hayan descargado correctamente
-3. Asegúrate de usar Android SDK 24 o superior
+## 📱 Primer Uso
 
-¡Disfruta desarrollando con Eris! 🎵
+1. **Conceder Permisos**
+   - La app pedirá permisos de almacenamiento (si es Android < 13)
+   - Clic en "Permitir"
+
+2. **Buscar Música**
+   - Escribe en la barra de búsqueda: "nombre de canción + artista"
+   - Presiona Enter
+   - Aparecerán resultados de YouTube
+
+3. **Reproducir**
+   - Toca el botón Play (▶️) en cualquier resultado
+   - Se abrirá un diálogo con opciones
+   - Elige "Abrir en YouTube" para reproducir
+
+4. **Obtener Enlace**
+   - Toca el botón Descarga (⬇️)
+   - El enlace de YouTube se copiará al portapapeles
+   - Úsalo en tu app de descarga preferida
+
+## ⚠️ Solución de Problemas
+
+### Error: "API Key inválida"
+- ✅ Verifica que pegaste la API Key correctamente
+- ✅ Asegúrate de que YouTube Data API v3 esté habilitada
+- ✅ Revisa que no haya espacios extra en la API Key
+
+### Error: "Cuota excedida"
+- ℹ️ Has usado las 10,000 unidades gratuitas del día
+- ⏰ Espera hasta mañana o aumenta tu cuota en Google Cloud Console
+
+### No aparecen resultados
+- ✅ Verifica tu conexión a Internet
+- ✅ Intenta con otro término de búsqueda
+- ✅ Revisa los logs de Android Studio para ver el error exacto
+
+### La app no compila
+- ✅ Sincroniza Gradle: File > Sync Project with Gradle Files
+- ✅ Limpia el proyecto: Build > Clean Project
+- ✅ Reconstruye: Build > Rebuild Project
+
+## 🔒 Seguridad de la API Key
+
+### ⚠️ No Subas tu API Key a GitHub
+
+Para proyectos públicos:
+
+1. **Crear archivo local**
+   ```
+   local.properties
+   ```
+
+2. **Agregar tu API Key**
+   ```properties
+   youtube.apikey=TU_API_KEY_AQUI
+   ```
+
+3. **Leer en build.gradle**
+   ```gradle
+   def localProperties = new Properties()
+   localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+   
+   buildConfigField "String", "YOUTUBE_API_KEY", localProperties['youtube.apikey']
+   ```
+
+4. **Usar en código**
+   ```kotlin
+   const val API_KEY = BuildConfig.YOUTUBE_API_KEY
+   ```
+
+## 📚 Recursos Adicionales
+
+- **Documentación YouTube API**: https://developers.google.com/youtube/v3
+- **Cuotas y límites**: https://developers.google.com/youtube/v3/getting-started#quota
+- **Google Cloud Console**: https://console.cloud.google.com/
+- **MIGRACION_YOUTUBE.md**: Detalles técnicos de los cambios realizados
+
+## ✅ Verificación Final
+
+Antes de usar la app, verifica que:
+
+- [ ] Tienes una API Key de YouTube válida
+- [ ] La API Key está configurada en YouTubeConfig.kt
+- [ ] YouTube Data API v3 está habilitada en tu proyecto de Google Cloud
+- [ ] El proyecto compila sin errores
+- [ ] La app se ejecuta en tu dispositivo/emulador
+
+---
+
+**¡Listo! Ya puedes buscar música en YouTube con Eris.** 🎵
+
+Para más información, consulta el README.md principal.
