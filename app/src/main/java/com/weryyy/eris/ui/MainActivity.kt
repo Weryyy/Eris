@@ -181,6 +181,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSong(song: Song) {
+        // Si es un video de YouTube, mostramos información al usuario
+        if (song.youtubeVideoId != null) {
+            showYouTubePlaybackInfo(song)
+            return
+        }
+        
+        // Para otras fuentes con URLs reproducibles directamente
         currentSong = song
         musicService?.playSong(song)
         
@@ -191,25 +198,74 @@ class MainActivity : AppCompatActivity() {
         
         binding.seekBar.max = musicService?.getDuration() ?: 0
     }
+    
+    private fun showYouTubePlaybackInfo(song: Song) {
+        val youtubeUrl = "https://www.youtube.com/watch?v=${song.youtubeVideoId}"
+        
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Reproducir en YouTube")
+            .setMessage("Esta canción es de YouTube. Puedes:\n\n" +
+                    "1. Abrir en YouTube para reproducir\n" +
+                    "2. Copiar el enlace para usar en otra app\n\n" +
+                    "URL: $youtubeUrl")
+            .setPositiveButton("Abrir en YouTube") { _, _ ->
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(youtubeUrl))
+                startActivity(intent)
+            }
+            .setNeutralButton("Copiar URL") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("YouTube URL", youtubeUrl)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Enlace copiado", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
 
     private fun downloadSong(song: Song) {
         if (song.previewUrl == null) {
-            Toast.makeText(this, "No hay URL de descarga disponible", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "No hay URL disponible", Toast.LENGTH_SHORT).show()
             return
         }
         
-        val intent = Intent(this, DownloadService::class.java).apply {
-            putExtra("song", song)
-            putExtra("url", song.previewUrl)
-        }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
+        // Para YouTube, mostramos el enlace al usuario
+        if (song.youtubeVideoId != null) {
+            showYouTubeLinkDialog(song)
         } else {
-            startService(intent)
+            // Para otras fuentes (si las hubiera), intentar descargar
+            val intent = Intent(this, DownloadService::class.java).apply {
+                putExtra("song", song)
+                putExtra("url", song.previewUrl)
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            
+            Toast.makeText(this, "Descargando ${song.name}...", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun showYouTubeLinkDialog(song: Song) {
+        val youtubeUrl = "https://www.youtube.com/watch?v=${song.youtubeVideoId}"
         
-        Toast.makeText(this, "Descargando ${song.name}...", Toast.LENGTH_SHORT).show()
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Enlace de YouTube")
+            .setMessage("Puedes copiar este enlace y usar tu herramienta preferida para descargar:\n\n$youtubeUrl")
+            .setPositiveButton("Copiar") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("YouTube URL", youtubeUrl)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Enlace copiado al portapapeles", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Abrir en YouTube") { _, _ ->
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(youtubeUrl))
+                startActivity(intent)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun bindMusicService() {
