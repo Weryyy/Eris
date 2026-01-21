@@ -161,11 +161,11 @@ class MainActivity : AppCompatActivity() {
                         name = item.snippet.title,
                         artist = item.snippet.channelTitle,
                         album = "", // YouTube no tiene álbum
-                        previewUrl = "https://www.youtube.com/watch?v=${item.id.videoId}",
+                        previewUrl = "https://www.youtube.com/watch?v=${item.id.videoId}", // URL para referencia, no reproducible directamente
                         imageUrl = item.snippet.thumbnails.high?.url 
                             ?: item.snippet.thumbnails.medium?.url 
                             ?: item.snippet.thumbnails.default?.url,
-                        duration = 0, // YouTube Data API no proporciona duración en búsqueda básica
+                        duration = -1, // YouTube Data API búsqueda básica no proporciona duración
                         youtubeVideoId = item.id.videoId
                     )
                 })
