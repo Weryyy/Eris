@@ -39,7 +39,8 @@ class MainActivity : AppCompatActivity() {
     private var currentSong: Song? = null
     
     private val handler = Handler(Looper.getMainLooper())
-    private var accessToken: String = ""
+    // Ya no necesitamos token de Spotify
+    // private var accessToken: String = ""
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -64,9 +65,8 @@ class MainActivity : AppCompatActivity() {
         setupPlayerControls()
         bindMusicService()
         
-        // Nota: El token de Spotify debe obtenerse mediante OAuth
-        // Por ahora usamos un placeholder
-        Toast.makeText(this, "Configura tu token de Spotify en SpotifyConfig", Toast.LENGTH_LONG).show()
+        // Mensaje informativo sobre YouTube
+        Toast.makeText(this, "Configura tu API Key de YouTube en YouTubeConfig", Toast.LENGTH_LONG).show()
     }
 
     private fun checkPermissions() {
@@ -148,23 +148,25 @@ class MainActivity : AppCompatActivity() {
             try {
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Necesitas obtener un token válido de Spotify
-                // Este es un ejemplo simplificado
-                val response = ApiClient.spotifyApi.searchTracks(
-                    "Bearer $accessToken",
-                    query
+                // Buscar videos en YouTube
+                val response = ApiClient.youtubeApi.searchVideos(
+                    query = query,
+                    apiKey = com.weryyy.eris.data.YouTubeConfig.API_KEY
                 )
                 
                 songs.clear()
-                songs.addAll(response.tracks.items.map { item ->
+                songs.addAll(response.items.map { item ->
                     Song(
-                        id = item.id,
-                        name = item.name,
-                        artist = item.artists.firstOrNull()?.name ?: "Unknown",
-                        album = item.album.name,
-                        previewUrl = item.preview_url,
-                        imageUrl = item.album.images.firstOrNull()?.url,
-                        duration = item.duration_ms
+                        id = item.id.videoId,
+                        name = item.snippet.title,
+                        artist = item.snippet.channelTitle,
+                        album = "", // YouTube no tiene álbum
+                        previewUrl = "https://www.youtube.com/watch?v=${item.id.videoId}",
+                        imageUrl = item.snippet.thumbnails.high?.url 
+                            ?: item.snippet.thumbnails.medium?.url 
+                            ?: item.snippet.thumbnails.default?.url,
+                        duration = 0, // YouTube Data API no proporciona duración en búsqueda básica
+                        youtubeVideoId = item.id.videoId
                     )
                 })
                 
