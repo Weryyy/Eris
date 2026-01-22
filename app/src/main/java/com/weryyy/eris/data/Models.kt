@@ -10,6 +10,7 @@ data class Song(
     val previewUrl: String?,
     val imageUrl: String?,
     val duration: Int,
+    val youtubeVideoId: String? = null, // ID del video de YouTube
     var isDownloaded: Boolean = false,
     var localPath: String? = null
 ) : Serializable

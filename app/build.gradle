@@ -41,10 +41,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // Spotify SDK
-    implementation 'com.spotify.android:auth:2.1.0'
-    // Note: Spotify App Remote SDK must be downloaded from Spotify Developer Dashboard
-    // and placed in app/libs/ directory for full functionality
+    // YouTube Data API (for search only - legal usage)
+    implementation 'com.google.apis:google-api-services-youtube:v3-rev20230502-2.0.0'
+    implementation 'com.google.http-client:google-http-client-android:1.43.3'
+    implementation 'com.google.http-client:google-http-client-jackson2:1.43.3'
     
     // Networking
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'

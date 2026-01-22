@@ -39,7 +39,8 @@ class MainActivity : AppCompatActivity() {
     private var currentSong: Song? = null
     
     private val handler = Handler(Looper.getMainLooper())
-    private var accessToken: String = ""
+    // Ya no necesitamos token de Spotify
+    // private var accessToken: String = ""
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -64,9 +65,8 @@ class MainActivity : AppCompatActivity() {
         setupPlayerControls()
         bindMusicService()
         
-        // Nota: El token de Spotify debe obtenerse mediante OAuth
-        // Por ahora usamos un placeholder
-        Toast.makeText(this, "Configura tu token de Spotify en SpotifyConfig", Toast.LENGTH_LONG).show()
+        // Mensaje informativo sobre YouTube
+        Toast.makeText(this, "Configura tu API Key de YouTube en YouTubeConfig", Toast.LENGTH_LONG).show()
     }
 
     private fun checkPermissions() {
@@ -148,23 +148,25 @@ class MainActivity : AppCompatActivity() {
             try {
                 binding.progressBar.visibility = View.VISIBLE
                 
-                // Necesitas obtener un token válido de Spotify
-                // Este es un ejemplo simplificado
-                val response = ApiClient.spotifyApi.searchTracks(
-                    "Bearer $accessToken",
-                    query
+                // Buscar videos en YouTube
+                val response = ApiClient.youtubeApi.searchVideos(
+                    query = query,
+                    apiKey = com.weryyy.eris.data.YouTubeConfig.API_KEY
                 )
                 
                 songs.clear()
-                songs.addAll(response.tracks.items.map { item ->
+                songs.addAll(response.items.map { item ->
                     Song(
-                        id = item.id,
-                        name = item.name,
-                        artist = item.artists.firstOrNull()?.name ?: "Unknown",
-                        album = item.album.name,
-                        previewUrl = item.preview_url,
-                        imageUrl = item.album.images.firstOrNull()?.url,
-                        duration = item.duration_ms
+                        id = item.id.videoId,
+                        name = item.snippet.title,
+                        artist = item.snippet.channelTitle,
+                        album = "", // YouTube no tiene álbum
+                        previewUrl = "https://www.youtube.com/watch?v=${item.id.videoId}", // URL para referencia, no reproducible directamente
+                        imageUrl = item.snippet.thumbnails.high?.url 
+                            ?: item.snippet.thumbnails.medium?.url 
+                            ?: item.snippet.thumbnails.default?.url,
+                        duration = -1, // YouTube Data API búsqueda básica no proporciona duración
+                        youtubeVideoId = item.id.videoId
                     )
                 })
                 
@@ -179,6 +181,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playSong(song: Song) {
+        // Si es un video de YouTube, mostramos información al usuario
+        if (song.youtubeVideoId != null) {
+            showYouTubePlaybackInfo(song)
+            return
+        }
+        
+        // Para otras fuentes con URLs reproducibles directamente
         currentSong = song
         musicService?.playSong(song)
         
@@ -189,25 +198,74 @@ class MainActivity : AppCompatActivity() {
         
         binding.seekBar.max = musicService?.getDuration() ?: 0
     }
+    
+    private fun showYouTubePlaybackInfo(song: Song) {
+        val youtubeUrl = "https://www.youtube.com/watch?v=${song.youtubeVideoId}"
+        
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Reproducir en YouTube")
+            .setMessage("Esta canción es de YouTube. Puedes:\n\n" +
+                    "1. Abrir en YouTube para reproducir\n" +
+                    "2. Copiar el enlace para usar en otra app\n\n" +
+                    "URL: $youtubeUrl")
+            .setPositiveButton("Abrir en YouTube") { _, _ ->
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(youtubeUrl))
+                startActivity(intent)
+            }
+            .setNeutralButton("Copiar URL") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("YouTube URL", youtubeUrl)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Enlace copiado", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
 
     private fun downloadSong(song: Song) {
         if (song.previewUrl == null) {
-            Toast.makeText(this, "No hay URL de descarga disponible", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "No hay URL disponible", Toast.LENGTH_SHORT).show()
             return
         }
         
-        val intent = Intent(this, DownloadService::class.java).apply {
-            putExtra("song", song)
-            putExtra("url", song.previewUrl)
-        }
-        
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
+        // Para YouTube, mostramos el enlace al usuario
+        if (song.youtubeVideoId != null) {
+            showYouTubeLinkDialog(song)
         } else {
-            startService(intent)
+            // Para otras fuentes (si las hubiera), intentar descargar
+            val intent = Intent(this, DownloadService::class.java).apply {
+                putExtra("song", song)
+                putExtra("url", song.previewUrl)
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            
+            Toast.makeText(this, "Descargando ${song.name}...", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun showYouTubeLinkDialog(song: Song) {
+        val youtubeUrl = "https://www.youtube.com/watch?v=${song.youtubeVideoId}"
         
-        Toast.makeText(this, "Descargando ${song.name}...", Toast.LENGTH_SHORT).show()
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Enlace de YouTube")
+            .setMessage("Puedes copiar este enlace y usar tu herramienta preferida para descargar:\n\n$youtubeUrl")
+            .setPositiveButton("Copiar") { _, _ ->
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("YouTube URL", youtubeUrl)
+                clipboard.setPrimaryClip(clip)
+                Toast.makeText(this, "Enlace copiado al portapapeles", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Abrir en YouTube") { _, _ ->
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(youtubeUrl))
+                startActivity(intent)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun bindMusicService() {

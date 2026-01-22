@@ -1,26 +1,21 @@
-# Eris - Reproductor de Música con Spotify
+# Eris - Reproductor de Música con YouTube
 
-Eris es una aplicación Android de reproductor de música que se integra con la API de Spotify para buscar, descargar y reproducir canciones directamente desde tu teléfono móvil.
+Eris es una aplicación Android de reproductor de música que se integra con la API de YouTube para buscar canciones. Los usuarios pueden buscar música en YouTube y obtener enlaces para reproducir o descargar usando sus herramientas preferidas.
 
 ## 🎵 Características
 
-- **Búsqueda de canciones** mediante la API de Spotify
-- **Descarga de canciones** para reproducción offline
-- **Reproductor de música completo** con controles:
-  - Play/Pausa
-  - Stop
-  - Barra de progreso con seek
-  - Información de la canción (nombre, artista, álbum)
-- **Soporte para Bluetooth** (automático a través del sistema Android)
-- **Control de volumen** (mediante los botones del dispositivo)
+- **Búsqueda de canciones** mediante YouTube Data API v3
+- **Obtención de enlaces de YouTube** para canciones encontradas
+- **Copia de enlaces** al portapapeles para usar con herramientas externas
+- **Apertura directa en YouTube** para reproducción
 - **Interfaz moderna** con Material Design
-- **Notificaciones** para reproducción y descargas
+- **Búsqueda rápida** de música por título, artista o álbum
 
 ## 📋 Requisitos
 
 - Android Studio Arctic Fox o superior
 - Android SDK 24 o superior (Android 7.0+)
-- Cuenta de desarrollador de Spotify
+- Cuenta de Google Cloud Platform (para YouTube Data API)
 - Dispositivo Android o emulador
 
 ## 🚀 Instalación y Configuración
@@ -32,22 +27,23 @@ git clone https://github.com/Weryyy/Eris.git
 cd Eris
 ```
 
-### 2. Configurar credenciales de Spotify
+### 2. Configurar YouTube Data API
 
-1. Ve a [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Inicia sesión o crea una cuenta
-3. Haz clic en "Create an App"
-4. Completa los detalles:
-   - **App name**: Eris Music Player
-   - **App description**: Reproductor de música con integración Spotify
-   - **Redirect URI**: `eris://callback`
-5. Una vez creada, copia el **Client ID** y **Client Secret**
+1. Ve a [Google Cloud Console](https://console.cloud.google.com/)
+2. Crea un nuevo proyecto o selecciona uno existente
+3. Habilita la **YouTube Data API v3**:
+   - En el menú, ve a "APIs y servicios" > "Biblioteca"
+   - Busca "YouTube Data API v3"
+   - Haz clic en "Habilitar"
+4. Crea credenciales:
+   - Ve a "APIs y servicios" > "Credenciales"
+   - Haz clic en "Crear credenciales" > "Clave de API"
+   - Copia la clave de API generada
 
-6. Abre el archivo `app/src/main/java/com/weryyy/eris/data/SpotifyConfig.kt`
-7. Reemplaza los valores:
+5. Abre el archivo `app/src/main/java/com/weryyy/eris/data/YouTubeConfig.kt`
+6. Reemplaza el valor:
 ```kotlin
-const val CLIENT_ID = "tu_client_id_aqui"
-const val CLIENT_SECRET = "tu_client_secret_aqui"
+const val API_KEY = "TU_API_KEY_DE_YOUTUBE_AQUI"
 ```
 
 ### 3. Compilar y ejecutar
@@ -63,25 +59,21 @@ const val CLIENT_SECRET = "tu_client_secret_aqui"
 1. Abre la app
 2. En la barra de búsqueda, escribe el nombre de una canción, artista o álbum
 3. Presiona Enter o el botón de búsqueda
-4. Se mostrará una lista de resultados de Spotify
+4. Se mostrará una lista de resultados de YouTube
 
 ### Reproducir música
 1. En la lista de resultados, toca el botón de **Play** (▶️) junto a cualquier canción
-2. El reproductor aparecerá en la parte inferior con:
-   - Nombre de la canción y artista
-   - Barra de progreso (puedes arrastrarla para saltar a cualquier posición)
-   - Botones de Pausa y Stop
+2. Se abrirá un diálogo con opciones:
+   - **Abrir en YouTube**: Abre el video en la app de YouTube
+   - **Copiar URL**: Copia el enlace al portapapeles
 
-### Descargar canciones
+### Obtener enlaces para descargar
 1. Toca el botón de **Descarga** (⬇️) junto a cualquier canción
-2. La canción se descargará en la carpeta `Music/Eris` de tu dispositivo
-3. Recibirás una notificación cuando se complete la descarga
-
-### Controles de reproducción
-- **Play/Pausa**: Toca el botón grande del centro
-- **Stop**: Detiene la reproducción y cierra el reproductor
-- **Volumen**: Usa los botones de volumen de tu dispositivo
-- **Bluetooth**: Conecta tus auriculares Bluetooth y el audio se reproducirá automáticamente
+2. Se mostrará el enlace de YouTube
+3. Opciones disponibles:
+   - **Copiar**: Copia el enlace para usar en tu herramienta de descarga preferida
+   - **Abrir en YouTube**: Abre directamente en YouTube
+   - **Cancelar**: Cierra el diálogo
 
 ## 🛠️ Estructura del Proyecto
 
@@ -93,10 +85,9 @@ Eris/
 │   │       ├── java/com/weryyy/eris/
 │   │       │   ├── data/           # Modelos y API
 │   │       │   │   ├── Models.kt
-│   │       │   │   ├── SpotifyApiService.kt
+│   │       │   │   ├── YouTubeApiService.kt
 │   │       │   │   ├── ApiClient.kt
-│   │       │   │   ├── SpotifyConfig.kt
-│   │       │   │   └── AuthManager.kt
+│   │       │   │   └── YouTubeConfig.kt
 │   │       │   ├── service/        # Servicios en segundo plano
 │   │       │   │   ├── MusicPlayerService.kt
 │   │       │   │   └── DownloadService.kt
@@ -116,33 +107,34 @@ Eris/
 - **Kotlin**: Lenguaje de programación principal
 - **Android SDK**: Framework de desarrollo Android
 - **Material Design**: Componentes de UI modernos
-- **Retrofit**: Cliente HTTP para consumir la API de Spotify
+- **Retrofit**: Cliente HTTP para consumir la API de YouTube
 - **Coroutines**: Para operaciones asíncronas
-- **MediaPlayer**: Para reproducción de audio
-- **Spotify Web API**: Para buscar y obtener información de canciones
+- **YouTube Data API v3**: Para buscar videos musicales
 
 ## ⚠️ Notas Importantes
 
-1. **Spotify Preview URLs**: La API de Spotify proporciona URLs de vista previa de 30 segundos. Para reproducción completa, necesitarías implementar el Spotify SDK completo con streaming.
+1. **YouTube Data API**: La API tiene una cuota gratuita de 10,000 unidades por día. Cada búsqueda consume aproximadamente 100 unidades.
 
 2. **Permisos**: La app requiere permisos de:
    - Internet
-   - Almacenamiento (para guardar descargas)
-   - Servicios en primer plano (para reproducción)
+   - Almacenamiento (opcional, para descargas futuras)
 
-3. **Limitaciones de la API**: Spotify tiene límites de tasa para las peticiones API. Para uso en producción, implementa manejo de tokens OAuth adecuado.
+3. **Reproducción y Descarga**: Esta app proporciona enlaces de YouTube. Para reproducir o descargar, los usuarios deben:
+   - Usar la app de YouTube para reproducir
+   - Usar herramientas externas legales para descargar (respetando derechos de autor)
+
+4. **Limitaciones**: 
+   - No reproduce audio directamente desde YouTube (por limitaciones técnicas y legales)
+   - Requiere apps externas para reproducción completa
 
 ## 🔧 Mejoras Futuras
 
-- [ ] Autenticación completa con OAuth de Spotify
-- [ ] Streaming de canciones completas usando Spotify SDK
-- [ ] Lista de reproducción personalizada
-- [ ] Historial de reproducción
-- [ ] Modo shuffle y repeat
-- [ ] Ecualizador
-- [ ] Compartir canciones
-- [ ] Widget de reproductor para la pantalla de inicio
+- [ ] Integración con ExoPlayer para reproducción web
+- [ ] Lista de favoritos
+- [ ] Historial de búsquedas
+- [ ] Compartir enlaces
 - [ ] Modo oscuro/claro
+- [ ] Soporte para playlists de YouTube
 
 ## 📄 Licencia
 
@@ -156,6 +148,10 @@ Desarrollado por Weryyy
 
 Las contribuciones son bienvenidas. Por favor, abre un issue primero para discutir los cambios que te gustaría hacer.
 
+## 📚 Nota sobre Spotify
+
+Esta versión de la app usa YouTube en lugar de Spotify debido a limitaciones actuales en la creación de apps de Spotify. El código original con Spotify sigue disponible en otras ramas del repositorio por si las políticas de Spotify cambian en el futuro.
+
 ---
 
-**¡Disfruta de tu música con Eris! 🎵**
+**¡Disfruta buscando tu música con Eris! 🎵**
